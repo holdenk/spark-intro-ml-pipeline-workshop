@@ -1,7 +1,7 @@
 #ipython checkpoints
 .pynb_checkpoints/
 #emacs
-.*~
+*~
 # spark sql
 metastore_db
 # Byte-compiled / optimized / DLL files
