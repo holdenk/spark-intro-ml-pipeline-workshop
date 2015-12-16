@@ -1,3 +1,5 @@
+#ipython checkpoints
+.pynb_checkpoints/
 #emacs
 .*~
 # spark sql
