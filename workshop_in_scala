@@ -1,4 +1,13 @@
+This is implemented in Apache Zepplin.
+
+To enable csv file format read please add the following in conf/zepplin-env.sh 
+
+export SPARK_SUBMIT_OPTIONS="--packages com.databricks:spark-csv_2.10:1.2.0"
+
+==========================================================================================
  
+
+
 val df = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("/Users/anand.ranganathan/github/spark_workshop_at_alpine_labs/resources/adult.data")
 
 
