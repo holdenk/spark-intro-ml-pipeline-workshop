@@ -1,11 +1,19 @@
-start your spark shell with following command .
-spark-shell --packages com.databricks:spark-csv_2.11:1.2.0
+This is implemented in Apache Zepplin.
 
+To enable csv file format read please add the following in conf/zepplin-env.sh 
 
+export SPARK_SUBMIT_OPTIONS="--packages com.databricks:spark-csv_2.10:1.2.0"
+
+==========================================================================================
+ 
 
 
 val df = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("/Users/anand.ranganathan/github/spark_workshop_at_alpine_labs/resources/adult.data")
 
+
+df: org.apache.spark.sql.DataFrame = [age: int, workclass: string, fnlwgt: double, education: string, education-num: double, maritial-status: string, occupation: string, relationship: string, race: string, sex: string, capital-gain: double, capital-loss: double, hours-per-week: double, native-country: string, category: string]
+
+==========================================================================================
 
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.ml.feature.VectorAssembler
@@ -13,44 +21,183 @@ import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.{DecisionTreeClassificationModel, DecisionTreeClassifier}
 
+import org.apache.spark.mllib.linalg.Vectors
+import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.ml.feature.StringIndexer
+import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.classification.{DecisionTreeClassificationModel, DecisionTreeClassifier}
+Took 1 seconds.
 
-
-
-val output=assembler.transform(df)
-output.select("features").take(10).foreach(println)
-
+==========================================================================================
 
 val assembler = new VectorAssembler().setInputCols(Array("age", "education-num")).setOutputCol("features")
 
+ 
+
+assembler: org.apache.spark.ml.feature.VectorAssembler = vecAssembler_4d096e1a3aa8
+Took 1 seconds.
+==========================================================================================
+
+
 val indexer = new StringIndexer().setInputCol("category").setOutputCol("category-index")
-
-
-
+indexer: org.apache.spark.ml.feature.StringIndexer = strIdx_c35e37e19a15
+Took 0 seconds.
 
 val pipeline = new Pipeline()
 
-val model=pipeline.fit(df)
-prepared = model.transform(df)
+pipeline: org.apache.spark.ml.Pipeline = pipeline_66c35b622907
+Took 0 seconds.
+
+==========================================================================================
+
 
 val pipeline = new Pipeline().setStages(Array(assembler, indexer))
- 
+
+pipeline: org.apache.spark.ml.Pipeline = pipeline_dd0173cd0ca6
+Took 1 seconds.
+==========================================================================================
+
+
 val model = pipeline.fit(df)
+
+model: org.apache.spark.ml.PipelineModel = pipeline_dd0173cd0ca6
+Took 0 seconds.
+==========================================================================================
+
 
 val prepared = model.transform(df)
 
+
+prepared: org.apache.spark.sql.DataFrame = [age: int, workclass: string, fnlwgt: double, education: string, education-num: double, maritial-status: string, occupation: string, relationship: string, race: string, sex: string, capital-gain: double, capital-loss: double, hours-per-week: double, native-country: string, category: string, features: vector, category-index: double]
+Took 1 seconds.
+
+==========================================================================================
+
 val classifier  = new DecisionTreeClassifier().setFeaturesCol("features").setLabelCol("category-index") 
+
+
+classifier_model: org.apache.spark.ml.classification.DecisionTreeClassificationModel = DecisionTreeClassificationModel of depth 5 with 63 nodes
+Took 2 seconds.
+==========================================================================================
 
 val classifier_model = classifier.fit(prepared)
 
+classifier_model: org.apache.spark.ml.classification.DecisionTreeClassificationModel = DecisionTreeClassificationModel of depth 5 with 63 nodes
+==========================================================================================
+
 
 val pipeline_and_model = new Pipeline().setStages(Array(assembler,indexer,classifier_model))
-val pipeline_model = pipeline_and_model.fit(df)
+ val pipeline_model = pipeline_and_model.fit(df)
 
 
-classifier_model.transform(prepared).select("prediction", "category-index").take(20)
+pipeline_and_model: org.apache.spark.ml.Pipeline = pipeline_5d7f64158bd0
+pipeline_model: org.apache.spark.ml.PipelineModel = pipeline_5d7f64158bd0
+Took 2 seconds.
+==========================================================================================
+
+
+
+classifier_model.transform(prepared).select("prediction", "category-index").take(20).foreach(println)
+
+
+classifier_model.transform(prepared).select("prediction", "category-index").take(20).foreach(println)
+
+[1.0,0.0]
+[1.0,0.0]
+[0.0,0.0]
+[0.0,0.0]
+[0.0,0.0]
+[1.0,0.0]
+[0.0,0.0]
+[0.0,1.0]
+[0.0,1.0]
+[1.0,1.0]
+[0.0,1.0]
+[0.0,1.0]
+[0.0,0.0]
+[0.0,0.0]
+[0.0,1.0]
+[0.0,0.0]
+[0.0,0.0]
+[0.0,0.0]
+[0.0,0.0]
+[1.0,1.0]
+Took 1 seconds.
+
+==========================================================================================
+
+ pipeline_model.transform(df).select("prediction", "category-index").take(20).foreach(println)
+ 
+ 
+ [1.0,0.0]
+[1.0,0.0]
+[0.0,0.0]
+[0.0,0.0]
+[0.0,0.0]
+[1.0,0.0]
+[0.0,0.0]
+[0.0,1.0]
+[0.0,1.0]
+[1.0,1.0]
+[0.0,1.0]
+[0.0,1.0]
+[0.0,0.0]
+[0.0,0.0]
+[0.0,1.0]
+[0.0,0.0]
+[0.0,0.0]
+[0.0,0.0]
+[0.0,0.0]
+[1.0,1.0]
+Took 1 seconds.
+
+==========================================================================================
+
+
+import org.apache.spark.ml.feature.StringIndexerModel
+
+val labels= (pipeline_model.stages(1).asInstanceOf[StringIndexerModel]).labels
+labels
+
+
+import org.apache.spark.ml.feature.StringIndexerModel
+labels: Array[String] = Array(" <=50K", " >50K")
+res105: Array[String] = Array(" <=50K", " >50K")
+
+==========================================================================================
 
 
 import org.apache.spark.ml.feature.IndexToString
 
+val inverter = new IndexToString().setInputCol("prediction").setOutputCol("prediction-label").setLabels(labels)
+
+inverter.transform(pipeline_model.transform(df)).select("prediction-label", "category").take(20).foreach(println)
+
+
+import org.apache.spark.ml.feature.IndexToString
+inverter: org.apache.spark.ml.feature.IndexToString = idxToStr_b363f31ff274
+[ >50K, <=50K]
+[ >50K, <=50K]
+[ <=50K, <=50K]
+[ <=50K, <=50K]
+[ <=50K, <=50K]
+[ >50K, <=50K]
+[ <=50K, <=50K]
+[ <=50K, >50K]
+[ <=50K, >50K]
+[ >50K, >50K]
+[ <=50K, >50K]
+[ <=50K, >50K]
+[ <=50K, <=50K]
+[ <=50K, <=50K]
+[ <=50K, >50K]
+[ <=50K, <=50K]
+[ <=50K, <=50K]
+[ <=50K, <=50K]
+[ <=50K, <=50K]
+[ >50K, >50K]
+Took 1 seconds.
+
+==========================================================================================
 
 
